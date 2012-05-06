@@ -92,6 +92,7 @@ enum targets_enum { tar_at89c51snd1c,
                     tar_at32uc3c2128,
                     tar_at32uc3c2256,
                     tar_at32uc3c2512,
+                    tar_atxmega128b1,
                     tar_none };
 
 enum commands_enum { com_none, com_erase, com_flash, com_user, com_eflash,
