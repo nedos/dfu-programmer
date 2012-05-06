@@ -1,7 +1,7 @@
 /*
  * dfu-programmer
  *
- * $Id: arguments.h 101 2011-01-17 03:09:05Z schmidtw $
+ * $Id: arguments.h 104 2011-09-22 14:38:24Z schmidtw $
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
