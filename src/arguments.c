@@ -119,10 +119,10 @@ static struct target_mapping_structure target_map[] = {
     { "atxmega192a3u",  tar_atxmega192a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x30000, 0x2000, true,  128, true,  false, 32,  0x0800 },
     { "atxmega256a3u",  tar_atxmega256a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x40000, 0x2000, true,  128, true,  false, 32,  0x1000 },
     { "atxmega16a4u",   tar_atxmega16a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x04000, 0x1000, true,  128, true,  false, 32,  0x0400 },
-    { "atxmega32a4u",   tar_atxmega32a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x08000, 0x1000, true,  128, true,  false, 32,  0x0400 },
+    { "atxmega32a4u",   tar_atxmega32a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x08000, 0x1000, true,  128, true,  false, 32,  0x0400 }, /* Tested */
     { "atxmega64a4u",   tar_atxmega64a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x10000, 0x1000, true,  128, true,  false, 32,  0x0800 },
     { "atxmega128a4u",  tar_atxmega128a4u,  adc_AVR32, 0x2FE4, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 },
-    { "atxmega128b1",   tar_atxmega128b1,   adc_AVR32, 0x2FEA, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 },
+    { "atxmega128b1",   tar_atxmega128b1,   adc_AVR32, 0x2FEA, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 }, /* Tested */
     { NULL }
 };
 
