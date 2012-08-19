@@ -13,51 +13,68 @@ use that to check for updates.
 Currently Supported Chips
 =========================
 8051 based:
-  at89c51snd1c
-  at89c5130
-  at89c5131
-  at89c5132
+* at89c51snd1c
+* at89c5130
+* at89c5131
+* at89c5132
 
 AVR based:
-  at90usb1287
-  at90usb1286
-  at90usb647
-  at90usb646
+* at90usb1287
+* at90usb1286
+* at90usb647
+* at90usb646
+
+AVR XMega based:
+* ATXmega*a3u
+* ATXmega*a4u
+* ATXmega128b1
 
 Simple install procedure
 ========================
+unpack the sources:
 
-  % tar -xzf dfu-programmer-<version>.tar.gz    # unpack the sources
-  % cd dfu-programmer                           # change to the top-level
-                                                # directory
+`tar -xzf dfu-programmer-<version>.tar.gz`
 
-  [ If the source was checked-out from  CVS, run the following command ]
-  % ./bootstrap.sh                              # regenerate base config
-                                                # files
-  
-  % ./configure                                 # regenerate configure and
-                                                # run it
+change to the top-level directory:
 
-  [ Optionally you can specify where dfu-programmer gets installed
-    using the --prefix= option to the ./configure command.  See
-    % ./configure --help for more details. ]
+`cd dfu-programmer`
 
-  % make                                        # build dfu-programmer
-  [ Become root if necessary ]
-  % make install                                # install dfu-programmer
+
+If the source was checked-out from  CVS, run the following commands:
+
+regenerate base config:
+
+`./bootstrap.sh`
+
+
+regenerate congiure and run it:
+
+`./configure`
+
+
+Optionally you can specify where dfu-programmer gets installed using the --prefix= option to the ./configure command. See ./configure --help for more details.
+
+build dfu-programmer:
+
+`make`
+
+install dfu-programmer:
+
+`make install`
+
 
 Building RPM Binary Packages
 ============================
 This section is intended to make it easier for those people that wish to
 build RPMs from the source included in this package, but aren't sure how.
 
-1) Copy dfu-programmer-<version>.tar.gz to your RPM SOURCES directory. Usually
+1. Copy dfu-programmer-<version>.tar.gz to your RPM SOURCES directory. Usually
    this is /usr/src/redhat/SOURCES/.
 
-2) Extract or copy dfu-programmer.spec into your RPM SPECS directory. Usually
+2. Extract or copy dfu-programmer.spec into your RPM SPECS directory. Usually
    this is /usr/src/redhat/SPECS/.
 
-3) In your RPM SPECS directory, issue the command 'rpm -ba dfu-programmer.spec'.
+3. In your RPM SPECS directory, issue the command 'rpm -ba dfu-programmer.spec'.
    This will cause rpm to extract the dfu-programmer sources to a temporary
    directory, build them, and build rpm packages based on the information in
    the spec file. The binary rpms will be put into your RPM RPMS directory.
