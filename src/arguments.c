@@ -114,15 +114,15 @@ static struct target_mapping_structure target_map[] = {
     { "at32uc3c2128",   tar_at32uc3c2128,   adc_AVR32, 0x2FEB, 0x03eb, 0x20000, 0x2000, false, 512, false, true,  0,   0      },
     { "at32uc3c2256",   tar_at32uc3c2256,   adc_AVR32, 0x2FEB, 0x03eb, 0x40000, 0x2000, false, 512, false, true,  0,   0      },
     { "at32uc3c2512",   tar_at32uc3c2512,   adc_AVR32, 0x2FEB, 0x03eb, 0x80000, 0x2000, false, 512, false, true,  0,   0      },
-    { "atxmega64a3u",   tar_atxmega64a3u,   adc_AVR32, 0x2FE4, 0x03eb, 0x10000, 0x1000, true,  128, true,  false, 32,  0x400  },
-    { "atxmega128a3u",  tar_atxmega128a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x800  },
-    { "atxmega192a3u",  tar_atxmega192a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x30000, 0x2000, true,  128, true,  false, 32,  0x800  },
+    { "atxmega64a3u",   tar_atxmega64a3u,   adc_AVR32, 0x2FE4, 0x03eb, 0x10000, 0x1000, true,  128, true,  false, 32,  0x0400 },
+    { "atxmega128a3u",  tar_atxmega128a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 },
+    { "atxmega192a3u",  tar_atxmega192a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x30000, 0x2000, true,  128, true,  false, 32,  0x0800 },
     { "atxmega256a3u",  tar_atxmega256a3u,  adc_AVR32, 0x2FE4, 0x03eb, 0x40000, 0x2000, true,  128, true,  false, 32,  0x1000 },
-    { "atxmega16a4u",   tar_atxmega16a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x04000, 0x1000, true,  128, true,  false, 32,  0x400  },
-    { "atxmega32a4u",   tar_atxmega32a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x08000, 0x1000, true,  128, true,  false, 32,  0x400  },
-    { "atxmega64a4u",   tar_atxmega64a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x10000, 0x1000, true,  128, true,  false, 32,  0x800  },
-    { "atxmega128a4u",  tar_atxmega128a4u,  adc_AVR32, 0x2FE4, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x800  },
-    { "atxmega128b1",   tar_atxmega128b1,   adc_AVR32, 0x2FEA, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x800  },
+    { "atxmega16a4u",   tar_atxmega16a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x04000, 0x1000, true,  128, true,  false, 32,  0x0400 },
+    { "atxmega32a4u",   tar_atxmega32a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x08000, 0x1000, true,  128, true,  false, 32,  0x0400 },
+    { "atxmega64a4u",   tar_atxmega64a4u,   adc_AVR32, 0x2FE4, 0x03eb, 0x10000, 0x1000, true,  128, true,  false, 32,  0x0800 },
+    { "atxmega128a4u",  tar_atxmega128a4u,  adc_AVR32, 0x2FE4, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 },
+    { "atxmega128b1",   tar_atxmega128b1,   adc_AVR32, 0x2FEA, 0x03eb, 0x20000, 0x2000, true,  128, true,  false, 32,  0x0800 },
     { NULL }
 };
 
