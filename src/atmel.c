@@ -1,7 +1,7 @@
 /*
  * dfu-programmer
  *
- * $Id: atmel.c 88 2009-08-14 06:32:21Z schmidtw $
+ * $Id$
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,13 +79,17 @@ static int32_t atmel_read_command( dfu_device_t *device,
                                    const uint8_t data0,
                                    const uint8_t data1 )
 {
-    if( adc_AVR32 == device->type ) {
+    if( NULL == device ) {
+        DEBUG( "invalid arguments.\n" );
+        return -1;
+    }
+
+    if( GRP_AVR32 & device->type ) {
         //We need to talk to configuration memory.  It comes
         //in two varieties in this chip.  data0 is the command to
         //select it
         //Data1 is the byte of that group we want
         
-    if( NULL != device ) {
         uint8_t command[4] = { 0x06, 0x03, 0x00, data0 };
 
         if( 4 != dfu_download(device, 4, command) ) {
@@ -103,48 +107,49 @@ static int32_t atmel_read_command( dfu_device_t *device,
         return (0xff & buffer[0]);
 
     } else {
+        uint8_t command[3] = { 0x05, 0x00, 0x00 };
+        uint8_t data[1]    = { 0x00 };
+        dfu_status_t status;
 
-       return -1;
-    }
-    } else {
-    uint8_t command[3] = { 0x05, 0x00, 0x00 };
-    uint8_t data[1]    = { 0x00 };
-    dfu_status_t status;
+        command[1] = data0;
+        command[2] = data1;
 
-    command[1] = data0;
-    command[2] = data1;
+        TRACE( "%s( %p, 0x%02x, 0x%02x )\n", __FUNCTION__, device, data0, data1 );
 
-    TRACE( "%s( %p, 0x%02x, 0x%02x )\n", __FUNCTION__, device, data0, data1 );
+        if( 3 != dfu_download(device, 3, command) ) {
+            DEBUG( "dfu_download failed\n" );
+            return -1;
+        }
 
-    if( 3 != dfu_download(device, 3, command) ) {
-        DEBUG( "dfu_download failed\n" );
-        return -1;
-    }
+        if( 0 != dfu_get_status(device, &status) ) {
+            DEBUG( "dfu_get_status failed\n" );
+            return -2;
+        }
 
-    if( 0 != dfu_get_status(device, &status) ) {
-        DEBUG( "dfu_get_status failed\n" );
-        return -2;
-    }
+        if( DFU_STATUS_OK != status.bStatus ) {
+            DEBUG( "status(%s) was not OK.\n",
+                   dfu_status_to_string(status.bStatus) );
+            return -3;
+        }
 
-    if( DFU_STATUS_OK != status.bStatus ) {
-        DEBUG( "status(%s) was not OK.\n",
-               dfu_status_to_string(status.bStatus) );
-        return -3;
-    }
+        if( 1 != dfu_upload(device, 1, data) ) {
+            DEBUG( "dfu_upload failed\n" );
+            return -4;
+        }
 
-    if( 1 != dfu_upload(device, 1, data) ) {
-        DEBUG( "dfu_upload failed\n" );
-        return -4;
-    }
-
-    return (0xff & data[0]);
+        return (0xff & data[0]);
     }
 }
 
 int32_t atmel_read_fuses( dfu_device_t *device,
                            atmel_avr32_fuses_t *info )
 {
-    if( adc_AVR32 != device->type ) {
+    if( NULL == device ) {
+        DEBUG( "invalid arguments.\n" );
+        return -1;
+    }
+
+    if( GRP_AVR & device->type ) {
        DEBUG( "target does not support fuse operation.\n" );
        fprintf( stderr, "target does not support fuse operation.\n" );
        return -1;
@@ -197,34 +202,31 @@ int32_t atmel_read_config( dfu_device_t *device,
         uint8_t device_map;
         size_t  offset;
     } atmel_read_config_t;
-#   define DM_8051  0x01
-#   define DM_AVR   0x02
-#   define DM_AVR32 0x04
 
     /* These commands are documented in Appendix A of the
      * "AT89C5131A USB Bootloader Datasheet" or
      * "AT90usb128x/AT90usb64x USB DFU Bootloader Datasheet"
      */
     static const atmel_read_config_t data[] = {
-        { 0x00, 0x00, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, bootloaderVersion) },
-        { 0x04, 0x00, (DM_AVR32),         offsetof(atmel_device_info_t, bootloaderVersion) },
-        { 0x00, 0x01, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, bootID1)           },
-        { 0x04, 0x01, (DM_AVR32),         offsetof(atmel_device_info_t, bootID1)           },
-        { 0x00, 0x02, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, bootID2)           },
-        { 0x04, 0x02, (DM_AVR32),         offsetof(atmel_device_info_t, bootID2)           },
-        { 0x01, 0x30, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, manufacturerCode)  },
-        { 0x05, 0x00, (DM_AVR32),         offsetof(atmel_device_info_t, manufacturerCode)  },
-        { 0x01, 0x31, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, familyCode)        },
-        { 0x05, 0x01, (DM_AVR32),         offsetof(atmel_device_info_t, familyCode)        },
-        { 0x01, 0x60, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, productName)       },
-        { 0x05, 0x02, (DM_AVR32),         offsetof(atmel_device_info_t, productName)       },
-        { 0x01, 0x61, (DM_8051 | DM_AVR), offsetof(atmel_device_info_t, productRevision)   },
-        { 0x05, 0x03, (DM_AVR32),         offsetof(atmel_device_info_t, productRevision)   },
-        { 0x01, 0x00, DM_8051,            offsetof(atmel_device_info_t, bsb)               },
-        { 0x01, 0x01, DM_8051,            offsetof(atmel_device_info_t, sbv)               },
-        { 0x01, 0x05, DM_8051,            offsetof(atmel_device_info_t, ssb)               },
-        { 0x01, 0x06, DM_8051,            offsetof(atmel_device_info_t, eb)                },
-        { 0x02, 0x00, DM_8051,            offsetof(atmel_device_info_t, hsb)               }
+        { 0x00, 0x00, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, bootloaderVersion) },
+        { 0x04, 0x00, (ADC_AVR32),          offsetof(atmel_device_info_t, bootloaderVersion) },
+        { 0x00, 0x01, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, bootID1)           },
+        { 0x04, 0x01, (ADC_AVR32),          offsetof(atmel_device_info_t, bootID1)           },
+        { 0x00, 0x02, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, bootID2)           },
+        { 0x04, 0x02, (ADC_AVR32),          offsetof(atmel_device_info_t, bootID2)           },
+        { 0x01, 0x30, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, manufacturerCode)  },
+        { 0x05, 0x00, (ADC_AVR32),          offsetof(atmel_device_info_t, manufacturerCode)  },
+        { 0x01, 0x31, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, familyCode)        },
+        { 0x05, 0x01, (ADC_AVR32),          offsetof(atmel_device_info_t, familyCode)        },
+        { 0x01, 0x60, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, productName)       },
+        { 0x05, 0x02, (ADC_AVR32),          offsetof(atmel_device_info_t, productName)       },
+        { 0x01, 0x61, (ADC_8051 | ADC_AVR), offsetof(atmel_device_info_t, productRevision)   },
+        { 0x05, 0x03, (ADC_AVR32),          offsetof(atmel_device_info_t, productRevision)   },
+        { 0x01, 0x00, ADC_8051,             offsetof(atmel_device_info_t, bsb)               },
+        { 0x01, 0x01, ADC_8051,             offsetof(atmel_device_info_t, sbv)               },
+        { 0x01, 0x05, ADC_8051,             offsetof(atmel_device_info_t, ssb)               },
+        { 0x01, 0x06, ADC_8051,             offsetof(atmel_device_info_t, eb)                },
+        { 0x02, 0x00, ADC_8051,             offsetof(atmel_device_info_t, hsb)               }
     };
 
     int32_t result;
@@ -233,12 +235,15 @@ int32_t atmel_read_config( dfu_device_t *device,
 
     TRACE( "%s( %p, %p )\n", __FUNCTION__, device, info );
 
+    if( NULL == device ) {
+        DEBUG( "invalid arguments.\n" );
+        return -1;
+    }
+
     for( i = 0; i < sizeof(data)/sizeof(atmel_read_config_t); i++ ) {
         atmel_read_config_t *row = (atmel_read_config_t*) &data[i];
 
-        if( ((DM_8051 & row->device_map) && (adc_8051 == device->type)) ||
-            ((DM_AVR & row->device_map) && (adc_AVR == device->type)) ||
-            ((DM_AVR32 & row->device_map) && (adc_AVR32 == device->type)) )
+        if( row->device_map & device->type )
         {
             int16_t *ptr = row->offset + (void *) info;
 
@@ -323,7 +328,12 @@ int32_t atmel_set_fuse( dfu_device_t *device,
     int8_t numbytes;
     int8_t i;
 
-    if( adc_AVR32 != device->type ) {
+    if( NULL == device ) {
+        DEBUG( "invalid arguments.\n" );
+        return -1;
+    }
+
+    if( GRP_AVR & device->type ) {
        DEBUG( "target does not support fuse operation.\n" );
        fprintf( stderr, "target does not support fuse operation.\n" );
        return -1;
@@ -499,7 +509,8 @@ static int32_t __atmel_read_page( dfu_device_t *device,
     TRACE( "%s( %p, %u, %u, %p, %s )\n", __FUNCTION__, device, start, end,
            buffer, ((true == eeprom) ? "true" : "false") );
 
-    if( true == eeprom ) {
+    // AVR/8051 requires 0x02 here to read eeprom, AVR32/XMEGA requires 0x00.
+    if( true == eeprom && (GRP_AVR & device->type) ) {
         command[1] = 0x02;
     }
 
@@ -577,8 +588,8 @@ int32_t atmel_read_flash( dfu_device_t *device,
         return -2;
     }
 
-    /* For the AVR32 chips, select the flash space. */
-    if( adc_AVR32 == device->type ) {
+    /* For the AVR32/XMEGA chips, select the flash space. */
+    if( GRP_AVR32 & device->type ) {
         if( user == true ) {
             if( 0 != atmel_select_user(device) ) {
                 return -3;
@@ -673,7 +684,7 @@ int32_t atmel_blank_check( dfu_device_t *device,
     }
 
     /* Select FLASH memory */
-    if( adc_AVR32 == device->type ) {
+    if( GRP_AVR32 & device->type ) {
         if( 0 != atmel_select_flash(device) ) {
             return -2;
         }
@@ -731,7 +742,10 @@ done:
 
 
 
-/* Not really sure how to test this one. */
+/* Reset the processor.
+ * This is done internally by forcing a watchdog reset.
+ * Depending on fuse settings this may go straight back into the bootloader.
+ */
 int32_t atmel_reset( dfu_device_t *device )
 {
     uint8_t command[3] = { 0x04, 0x03, 0x00 };
@@ -743,16 +757,18 @@ int32_t atmel_reset( dfu_device_t *device )
         return -1;
     }
 
-    /*
     if( 0 != dfu_download(device, 0, NULL) ) {
+        DEBUG( "dfu_download failed.\n" );
         return -2;
     }
-    */
 
     return 0;
 }
 
 
+/* Start the app by jumping to the start of the app area.
+ * This does not do a true device reset.
+ */
 int32_t atmel_start_app( dfu_device_t *device )
 {
     uint8_t command[5] = { 0x04, 0x03, 0x01, 0x00, 0x00 };
@@ -777,7 +793,7 @@ static int32_t atmel_select_flash( dfu_device_t *device )
 {
     TRACE( "%s( %p )\n", __FUNCTION__, device );
 
-    if( (NULL != device) && (adc_AVR32 == device->type) ) {
+    if( (NULL != device) && (GRP_AVR32 & device->type) ) {
         uint8_t command[4] = { 0x06, 0x03, 0x00, 0x00 };
 
         if( 4 != dfu_download(device, 4, command) ) {
@@ -794,7 +810,7 @@ static int32_t atmel_select_fuses( dfu_device_t *device )
 {
     TRACE( "%s( %p )\n", __FUNCTION__, device );
 
-    if( (NULL != device) && (adc_AVR32 == device->type) ) {
+    if( (NULL != device) && (GRP_AVR32 & device->type) ) {
         uint8_t command[4] = { 0x06, 0x03, 0x00, 0x03 };
 
         if( 4 != dfu_download(device, 4, command) ) {
@@ -812,7 +828,7 @@ static int32_t atmel_select_user( dfu_device_t *device )
 {
     TRACE( "%s( %p )\n", __FUNCTION__, device );
 
-    if( (NULL != device) && (adc_AVR32 == device->type) ) {
+    if( (NULL != device) && (GRP_AVR32 & device->type) ) {
         uint8_t command[4] = { 0x06, 0x03, 0x00, 0x06 };
 
         if( 4 != dfu_download(device, 4, command) ) {
@@ -831,7 +847,7 @@ static int32_t atmel_select_page( dfu_device_t *device,
     TRACE( "%s( %p, %u )\n", __FUNCTION__, device, mem_page );
 
     if( NULL != device ) {
-        if( adc_AVR32 == device->type ) {
+        if( GRP_AVR32 & device->type ) {
             uint8_t command[5] = { 0x06, 0x03, 0x01, 0x00, 0x00 };
             command[3] = 0xff & (mem_page >> 8);
             command[4] = 0xff & mem_page;
@@ -840,7 +856,7 @@ static int32_t atmel_select_page( dfu_device_t *device,
                 DEBUG( "dfu_download failed.\n" );
                 return -1;
             }
-        } else if( adc_AVR == device->type ) {
+        } else if( ADC_AVR == device->type ) {      // AVR but not 8051
             uint8_t command[4] = { 0x06, 0x03, 0x00, 0x00 };
 
             command[3] = (char) mem_page;
@@ -920,6 +936,63 @@ int32_t atmel_user( dfu_device_t *device,
     
 }
 
+int32_t atmel_secure( dfu_device_t *device )
+{
+    int32_t result = 0;
+    int16_t buffer[1];
+    TRACE( "%s( %p )\n", __FUNCTION__, device );
+
+    /* Select SECURITY page */
+    uint8_t command[4] = { 0x06, 0x03, 0x00, 0x02 };
+    if( 4 != dfu_download(device, 4, command) ) {
+        DEBUG( "dfu_download failed.\n" );
+        return -2;
+    }
+    
+    // The security block is a single byte, so we'll just do it all in a block.
+    buffer[0] = 0x01;   // Non-zero to set security fuse.
+    result = atmel_flash_block( device, buffer, 0, 1, false );
+    
+    if( result < 0 ) {
+        DEBUG( "error flashing security fuse: %d\n", result );
+        return -4;
+    }
+    
+    return 0;
+}
+
+int32_t atmel_getsecure( dfu_device_t *device )
+{
+    int32_t result = 0;
+    uint8_t buffer[1];
+    TRACE( "%s( %p )\n", __FUNCTION__, device );
+
+    dfu_clear_status( device );
+    /* Select SECURITY page */
+    uint8_t command[4] = { 0x06, 0x03, 0x00, 0x02 };
+    result = dfu_download(device, 4, command);
+    if( 4 != result ) {
+        if( -EIO == result ) {
+            /* This also happens on most access attempts
+             * when the security bit is set. It may be a bug
+             * in the bootloader itself.
+             */
+            return ATMEL_SECURE_MAYBE;
+        } else {
+            DEBUG( "dfu_download failed.\n" );
+            return -1;
+        }
+    }
+    
+    // The security block is a single byte, so we'll just do it all in a block.
+    result = __atmel_read_page( device, 0, 1, buffer, false );
+    if( 1 != result ) {
+        return -2;
+    }
+
+    return( (0 == buffer[0]) ? ATMEL_SECURE_OFF : ATMEL_SECURE_ON );
+}
+
 int32_t atmel_flash( dfu_device_t *device,
                      int16_t *buffer,
                      const uint32_t start,
@@ -936,13 +1009,13 @@ int32_t atmel_flash( dfu_device_t *device,
     TRACE( "%s( %p, %p, %u, %u, %u, %s )\n", __FUNCTION__, device, buffer,
            start, end, page_size, ((true == eeprom) ? "true" : "false") );
 
-    if( (NULL == buffer) || ((end - start) <= 0) ) {
+    if( (NULL == device) || (NULL == buffer) || ((end - start) <= 0) ) {
         DEBUG( "invalid arguments.\n" );
         return -1;
     }
 
-    if( (adc_AVR32 == device->type) || (adc_AVR == device->type) ) {
-        if( adc_AVR32 == device->type ) {
+    if( ADC_8051 != device->type ) {
+        if( GRP_AVR32 & device->type ) {
             /* Select FLASH memory */
             uint8_t command[4] = { 0x06, 0x03, 0x00, 0x00 };
             if( 4 != dfu_download(device, 4, command) ) {
@@ -1148,7 +1221,7 @@ static int32_t atmel_flash_block( dfu_device_t *device,
     TRACE( "%s( %p, %p, %u, %u, %s )\n", __FUNCTION__, device, buffer,
            base_address, length, ((true == eeprom) ? "true" : "false") );
 
-    if( (NULL == buffer) || (ATMEL_MAX_TRANSFER_SIZE < length) ) {
+    if( (NULL == device) || (NULL == buffer) || (ATMEL_MAX_TRANSFER_SIZE < length) ) {
         DEBUG( "invalid arguments.\n" );
         return -1;
     }
@@ -1156,7 +1229,7 @@ static int32_t atmel_flash_block( dfu_device_t *device,
     /* 0 out the message. */
     memset( message, 0, ATMEL_MAX_FLASH_BUFFER_SIZE );
 
-    if( adc_AVR32 == device->type ) {
+    if( GRP_AVR32 & device->type ) {
         control_block_size = ATMEL_AVR32_CONTROL_BLOCK_SIZE;
         alignment = base_address % ATMEL_AVR32_CONTROL_BLOCK_SIZE;
     } else {
