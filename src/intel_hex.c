@@ -13,7 +13,7 @@
  * http://www.sbprojects.com
  * In the "Knowledge Base" section.
  *
- * $Id: intel_hex.c 96 2011-01-17 01:53:24Z schmidtw $
+ * $Id$
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

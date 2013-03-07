@@ -1,7 +1,7 @@
 /*
  * dfu-programmer
  *
- * $Id: commands.h 71 2008-10-02 05:48:41Z schmidtw $
+ * $Id$
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

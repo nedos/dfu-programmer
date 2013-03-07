@@ -1,7 +1,7 @@
 /*
  * dfu-programmer
  *
- * $Id: atmel.h 85 2009-04-30 09:46:27Z schmidtw $
+ * $Id$
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,10 @@
 #define ATMEL_SET_CONFIG_SSB    2
 #define ATMEL_SET_CONFIG_EB     3
 #define ATMEL_SET_CONFIG_HSB    4
+
+#define ATMEL_SECURE_OFF        0       // Security bit is cleared
+#define ATMEL_SECURE_ON         1       // Security bit is set
+#define ATMEL_SECURE_MAYBE      2       // Call to check security bit failed
 
 /* All values are valid if in the range of 0-255, invalid otherwise */
 typedef struct {
@@ -85,10 +89,17 @@ int32_t atmel_read_flash( dfu_device_t *device,
                           const size_t buffer_len,
                           const dfu_bool eeprom,
                           const dfu_bool user );
+
 int32_t atmel_blank_check( dfu_device_t *device,
                            const uint32_t start,
                            const uint32_t end );
+/* check if memory between start and end (inclusive) is blank
+ * returns 0 for success, < 0 for communication errors, > 0 for not blank
+ */
+
 int32_t atmel_reset( dfu_device_t *device );
+int32_t atmel_secure( dfu_device_t *device );
+int32_t atmel_getsecure( dfu_device_t *device );
 int32_t atmel_flash( dfu_device_t *device,
                      int16_t *buffer,
                      const uint32_t start,
