@@ -89,9 +89,14 @@ int32_t atmel_read_flash( dfu_device_t *device,
                           const size_t buffer_len,
                           const dfu_bool eeprom,
                           const dfu_bool user );
+
 int32_t atmel_blank_check( dfu_device_t *device,
                            const uint32_t start,
                            const uint32_t end );
+/* check if memory between start and end (inclusive) is blank
+ * returns 0 for success, < 0 for communication errors, > 0 for not blank
+ */
+
 int32_t atmel_reset( dfu_device_t *device );
 int32_t atmel_secure( dfu_device_t *device );
 int32_t atmel_getsecure( dfu_device_t *device );

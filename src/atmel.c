@@ -643,6 +643,7 @@ static int32_t __atmel_blank_check_internal( dfu_device_t *device,
                                              const uint32_t end )
 {
     uint8_t command[6] = { 0x03, 0x01, 0x00, 0x00, 0x00, 0x00 };
+    dfu_status_t status;
 
     TRACE( "%s( %p, 0x%08x, 0x%08x )\n", __FUNCTION__, device, start, end );
 
@@ -656,7 +657,26 @@ static int32_t __atmel_blank_check_internal( dfu_device_t *device,
         return -2;
     }
 
-    return 0;
+    /* moved from atmel_blank_check function, consider using this instead of
+     * below if a single dfu_get_status request often fails.
+     *
+        for( i = 0; i < 20; i++ ) {
+            dfu_status_t status;
+            if( 0 == dfu_get_status(device, &status) ) {
+                return status.bStatus;
+            }
+        }
+    */
+
+    if( 0 != dfu_get_status(device, &status) ) {
+        DEBUG( "after BLANK_CHECK, request for DFU_GETSTATUS failed.\n" );
+        return -2;
+    }
+
+    // bStatus = {0x00:OK ; 0x05:errCHECK_ERASED ; 0x08:errADDRESS}
+    // if 0x05, device waits for DFU_UPLOAD request to send the first failed
+    // address (see AVR32760: 3.3.2.3)
+    return status.bStatus;
 }
 
 int32_t atmel_blank_check( dfu_device_t *device,
@@ -667,6 +687,7 @@ int32_t atmel_blank_check( dfu_device_t *device,
     uint16_t page;
     uint32_t current_start;
     size_t size;
+    uint8_t notblank = 0;          // store totals for not blank status
 
     TRACE( "%s( %p, 0x%08x, 0x%08x )\n", __FUNCTION__, device, start, end );
 
@@ -675,12 +696,10 @@ int32_t atmel_blank_check( dfu_device_t *device,
         return -1;
     }
 
-    rv = -3;
-
     /* Handle small memory (< 64k) devices without a page selection. */
     if( end < UINT16_MAX ) {
         rv = __atmel_blank_check_internal( device, start, end );
-        goto done;
+        return rv;
     }
 
     /* Select FLASH memory */
@@ -704,7 +723,8 @@ int32_t atmel_blank_check( dfu_device_t *device,
 
         rv = __atmel_blank_check_internal( device, 0, size );
         if( 0 != rv ) {
-            /* We ran into a problem. */
+            // rv > 0 is not blank, rv < 0 is communication error
+            // no reason to keep checking, so return immediately
             return rv;
         }
 
@@ -721,23 +741,7 @@ int32_t atmel_blank_check( dfu_device_t *device,
         }
     }
 
-done:
-    if( 0 == rv ) {
-        int32_t i;
-
-        /* It looks like it can take a while to erase the chip.
-         * We will try for 10 seconds before giving up.
-         */
-        for( i = 0; i < 20; i++ ) {
-            dfu_status_t status;
-            if( 0 == dfu_get_status(device, &status) ) {
-                return status.bStatus;
-            }
-        }
-    }
-
-    DEBUG( "erase chip failed.\n" );
-    return -3;
+    return rv;
 }
 
 
@@ -1005,6 +1009,7 @@ int32_t atmel_flash( dfu_device_t *device,
     uint8_t mem_page = 0;
     int32_t result = 0;
     size_t size = end - start;
+    int8_t notblank = 0;
 
     TRACE( "%s( %p, %p, %u, %u, %u, %s )\n", __FUNCTION__, device, buffer,
            start, end, page_size, ((true == eeprom) ? "true" : "false") );
@@ -1030,7 +1035,6 @@ int32_t atmel_flash( dfu_device_t *device,
             DEBUG( "error selecting the page: %d\n", result );
             return -3;
         }
-
     } else {
         atmel_flash_prepair_buffer( &buffer[start], size, page_size );
     }
@@ -1089,6 +1093,16 @@ recheck_page:
 
             if( ATMEL_MAX_TRANSFER_SIZE < length ) {
                 length = ATMEL_MAX_TRANSFER_SIZE;
+            }
+
+            // check that the data is going to be written into blank memory
+            if( notblank = atmel_blank_check(device, 
+                        (UINT16_MAX & first), 
+                        (UINT16_MAX & first) + length - 1) ) {
+                DEBUG ( "blankcheck returned 0x%02x.\n", notblank );
+                fprintf( stderr,
+                        "Desired memory is not blank, erase chip first.\n");
+                return -6;
             }
 
             result = atmel_flash_block( device, &(buffer[first]),

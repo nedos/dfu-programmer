@@ -256,11 +256,16 @@ int32_t dfu_get_status( dfu_device_t *device, dfu_status_t *status )
         DEBUG( "==============================\n" );
         DEBUG( "status->bStatus: %s (0x%02x)\n",
                dfu_status_to_string(status->bStatus), status->bStatus );
-        DEBUG( "status->bwPollTimeout: 0x%04x\n", status->bwPollTimeout );
+        DEBUG( "status->bwPollTimeout: 0x%04x ms\n", status->bwPollTimeout );
         DEBUG( "status->bState: %s (0x%02x)\n",
                dfu_state_to_string(status->bState), status->bState );
         DEBUG( "status->iString: 0x%02x\n", status->iString );
         DEBUG( "------------------------------\n" );
+        // clear dfuERROR state if an error message was received (see AVR32760
+        // section 3.6.2)
+        if ( status->bStatus ) {
+            dfu_clear_status(device);
+        }
     } else {
         if( 0 < result ) {
             /* There was an error, we didn't get the entire message. */

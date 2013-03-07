@@ -73,8 +73,10 @@ static int32_t execute_erase( dfu_device_t *device,
         return result;
     }
 
-    return atmel_blank_check( device, args->flash_address_bottom,
-                              args->flash_address_top );
+    result = atmel_blank_check( device, args->flash_address_bottom, 
+            args->flash_address_top );
+
+    return result;
 }
 
 
